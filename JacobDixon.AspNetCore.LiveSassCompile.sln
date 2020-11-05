@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30611.23
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JacobDixon.AspNetCore.LiveSassCompile", "JacobDixon.AspNetCore.LiveSassCompile\JacobDixon.AspNetCore.LiveSassCompile.csproj", "{AD041704-A5B4-4755-8897-60B356D8FB04}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample Web Sites", "Sample Web Sites", "{EAA7D6F1-CD84-4E1A-81AD-5B8AAF5D4268}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Web3.1", "Sample Web Sites\Web3.1\Web3.1.csproj", "{9B109767-3611-43A2-9A24-896682FD1646}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AD041704-A5B4-4755-8897-60B356D8FB04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD041704-A5B4-4755-8897-60B356D8FB04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD041704-A5B4-4755-8897-60B356D8FB04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD041704-A5B4-4755-8897-60B356D8FB04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B109767-3611-43A2-9A24-896682FD1646}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B109767-3611-43A2-9A24-896682FD1646}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B109767-3611-43A2-9A24-896682FD1646}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B109767-3611-43A2-9A24-896682FD1646}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9B109767-3611-43A2-9A24-896682FD1646} = {EAA7D6F1-CD84-4E1A-81AD-5B8AAF5D4268}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {950E95FC-A6A9-495C-8887-824EAAEA056D}
+	EndGlobalSection
+EndGlobal
