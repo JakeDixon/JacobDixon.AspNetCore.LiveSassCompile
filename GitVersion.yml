@@ -1,0 +1,6 @@
+mode: Mainline
+branches:
+  master:
+    regex: ^master|main$
+  develop:
+    increment: Patch

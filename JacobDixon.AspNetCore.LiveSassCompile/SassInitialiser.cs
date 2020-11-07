@@ -9,7 +9,6 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
 {
     public class SassInitialiser
     {
-        private readonly string[] _extensions = { ".scss", ".sass" };
         private List<SassFileWatcher> _sassFileWatchers = new List<SassFileWatcher>();
         private readonly IOptions<LiveSassCompileOptions> _options;
 
@@ -20,14 +19,11 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
 
         public void StartFileWatchers()
         {
-            if (!_options.Value.SassCompileEnabled)
-                return;
+            var sassFileWatchersOptions = _options.Value.SassFileWatchers;
 
-            var fileAndFolderMaps = _options.Value.FileAndFolderMaps;
-
-            foreach(var fileOrFolderMap in fileAndFolderMaps)
+            foreach(var sassFileWatcherOptions in sassFileWatchersOptions)
             {
-                var sassFileWatcher = new SassFileWatcher(fileOrFolderMap.Source, fileOrFolderMap.Destination, _options.Value.CompileFilesWithLeadingUnderscores);
+                var sassFileWatcher = new SassFileWatcher(sassFileWatcherOptions);
                 sassFileWatcher.StartFileWatcher();
                 _sassFileWatchers.Add(sassFileWatcher);
             }
