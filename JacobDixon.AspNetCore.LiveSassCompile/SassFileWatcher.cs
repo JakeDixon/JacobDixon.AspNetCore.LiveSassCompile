@@ -1,4 +1,5 @@
-﻿using System;
+﻿using JacobDixon.AspNetCore.LiveSassCompile.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,6 +14,15 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
         public SassFileWatcher(SassFileWatcherOptions options)
         {
             _options = options;
+
+            if (string.IsNullOrEmpty(_options.SourcePath))
+                throw new EmptyStringException("SourcePath option must not be empty or null");
+
+            if (string.IsNullOrEmpty(_options.DestinationPath))
+                throw new EmptyStringException("DestinationPath option must not be empty or null");
+
+            if (_options.FileNameFilters.Count == 0)
+                throw new EmptyArrayException("FileNameFilters must contain atleast one filter");
         }
 
         public void StartFileWatcher()
