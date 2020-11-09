@@ -23,7 +23,7 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            if (_options.Value.SassCompileEnabled && _options.Value.EnvironmentsToActivateIn.Contains(_environment.EnvironmentName))
+            if (_options.Value.EnvironmentsToActivateIn.Contains(_environment.EnvironmentName))
             {
                 _watcher = new SassInitialiser(_options);
                 _watcher.StartFileWatchers();

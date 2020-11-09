@@ -1,46 +1,39 @@
-﻿using Microsoft.Extensions.Options;
+﻿using JacobDixon.AspNetCore.LiveSassCompile.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Threading;
 
 namespace JacobDixon.AspNetCore.LiveSassCompile
 {
     public class SassFileWatcher
     {
-        private readonly string[] _extensions = { ".scss", ".sass" };
         private FileSystemWatcher _fileWatcher;
-        //private List<FileSystemWatcher> FolderWatchers;
-        private string _sourceFolder;
-        private string _destinationFolder;
-        private bool _compileFilesWithLeadingUnderscores;
+        private readonly SassFileWatcherOptions _options;
+        private Dictionary<string, DateTime> _lastRead = new Dictionary<string, DateTime>();
 
-        public SassFileWatcher(string sourceFolder, string destinationFolder, bool compileFilesWithLeadingUnderscores)
+        public SassFileWatcher(SassFileWatcherOptions options)
         {
-            _sourceFolder = sourceFolder;
-            _destinationFolder = destinationFolder;
-            _compileFilesWithLeadingUnderscores = compileFilesWithLeadingUnderscores;
+            _options = options;
+
+            if (string.IsNullOrEmpty(_options.SourcePath))
+                throw new EmptyStringException("SourcePath option must not be empty or null");
+
+            if (string.IsNullOrEmpty(_options.DestinationPath))
+                throw new EmptyStringException("DestinationPath option must not be empty or null");
+
+            if (_options.FileNameFilters.Count == 0)
+                throw new EmptyArrayException("FileNameFilters must contain atleast one filter");
         }
 
         public void StartFileWatcher()
         {
-            //FolderToMonitorPath = Path.GetFullPath(path);
-            //FolderToMonitorName = Path.GetFileName(FolderToMonitorPath);
-            StartFilesWatcher();
-            //StartFolderWatcher();
-        }
+            _fileWatcher = new FileSystemWatcher(_options.SourcePath);
 
-        public void StopFileWatcher()
-        {
-            DisposeFilesWatcher();
-            //DisposeFolderWatcher();
-        }
+            foreach (var filter in _options.FileNameFilters)
+                _fileWatcher.Filters.Add(filter);
 
-        private void StartFilesWatcher()
-        {
-            _fileWatcher = new FileSystemWatcher(_sourceFolder);
-            _fileWatcher.Filter = "*.*";
             _fileWatcher.EnableRaisingEvents = true;
             _fileWatcher.IncludeSubdirectories = true;
 
@@ -51,24 +44,15 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
             _fileWatcher.Changed += FileWatcher_Changed;
             _fileWatcher.Created += FileWatcher_Changed;
             _fileWatcher.Renamed += FileWatcher_Renamed;
+
+            if (_options.CompileOnStart)
+            {
+                var sassCompiler = new SassCompiler(_options);
+                sassCompiler.Compile(_options.SourcePath);
+            }
         }
 
-        //private void StartFolderWatcher()
-        //{
-        //    var parentPath = Path.GetDirectoryName(FolderToMonitorPath);
-        //    var folderName = Path.GetFileName(FolderToMonitorPath);
-        //    FolderWatcher = new FileSystemWatcher(parentPath);
-        //    FolderWatcher.Filter = folderName;
-        //    FolderWatcher.EnableRaisingEvents = true;
-        //    FolderWatcher.IncludeSubdirectories = false;
-
-
-        //    FolderWatcher.Created += FolderWatcher_Created;
-        //    FolderWatcher.Deleted += FolderWatcher_Deleted;
-        //    FolderWatcher.Renamed += FolderWatcher_Renamed;
-        //}
-
-        private void DisposeFilesWatcher()
+        public void StopFileWatcher()
         {
             _fileWatcher.Changed -= FileWatcher_Changed;
             _fileWatcher.Created -= FileWatcher_Changed;
@@ -78,42 +62,20 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
             _fileWatcher = null;
         }
 
-        //private void DisposeFolderWatcher()
-        //{
-        //    FolderWatcher.Created -= FolderWatcher_Created;
-        //    FolderWatcher.Deleted -= FolderWatcher_Deleted;
-        //    FolderWatcher.Renamed -= FolderWatcher_Renamed;
-        //    FolderWatcher.EnableRaisingEvents = false;
-        //    FolderWatcher?.Dispose();
-        //    FolderWatcher = null;
-        //}
-
-        private void FileChanged(string fileName)
+        private void FileChanged(string filePath)
         {
-            if (string.IsNullOrEmpty(fileName) || fileName.Contains("\\node_modules\\"))
+            if (string.IsNullOrEmpty(filePath))
                 return;
 
-            var ext = Path.GetExtension(fileName);
-            if (string.IsNullOrEmpty(ext))
-                return;  // we don't care about extensionless files
+            var lastWriteTime = File.GetLastWriteTime(filePath);
 
-            if (_extensions.Contains(ext))
+            if (!_lastRead.ContainsKey(filePath) || _lastRead[filePath] < lastWriteTime)
             {
-                var cssFilePath = Path.ChangeExtension(fileName, ".css");
-                var cssFileName = Path.GetFileName(cssFilePath);
+                var sassCompiler = new SassCompiler(_options);
+                sassCompiler.Compile(filePath);
 
-                var result = LibSassHost.SassCompiler.CompileFile(
-                    fileName, 
-                    cssFileName, 
-                    options: new LibSassHost.CompilationOptions { 
-                        OutputStyle = LibSassHost.OutputStyle.Compressed
-                    });
-
-                var relativePath = Path.GetRelativePath(_sourceFolder, cssFilePath);
-
-                File.WriteAllText(Path.Combine(_destinationFolder, relativePath), result.CompiledContent);
+                _lastRead[filePath] = DateTime.Now;
             }
-
         }
 
         private void FileWatcher_Renamed(object sender, RenamedEventArgs e)
@@ -125,28 +87,5 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
         {
             FileChanged(e.FullPath);
         }
-
-        //private void FolderWatcher_Created(object sender, FileSystemEventArgs e)
-        //{
-        //    _isFolderCreated = true;
-        //    StartFilesWatcher();
-        //}
-
-        //private void FolderWatcher_Deleted(object sender, System.IO.FileSystemEventArgs e)
-        //{
-        //    DisposeFilesWatcher();
-        //}
-
-        //private void FolderWatcher_Renamed(object sender, RenamedEventArgs e)
-        //{
-        //    if (string.Compare(e.Name, FolderToMonitorName, StringComparison.OrdinalIgnoreCase) == 0)
-        //    {
-        //        StartFileWatcher();
-        //    }
-        //    else if (string.Compare(e.OldName, FolderToMonitorName, StringComparison.OrdinalIgnoreCase) == 0)
-        //    {
-        //        DisposeFilesWatcher();
-        //    }
-        //}
     }
 }
