@@ -12,10 +12,10 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
         public const string OptionsName = "LiveSassCompileOptions";
 
         /// <summary>
-        /// An array of environments LiveSassCompile should activate in.
-        /// Default: [ "Development" ]
+        /// A boolean value which controls whether live compile is on (true) or off (false).
+        /// Default: false
         /// </summary>
-        public List<string> EnvironmentsToActivateIn { get; set; } = new List<string> { "Development" };
+        public bool EnableLiveCompile { get; set; }
 
         /// <summary>
         /// The folders to monitor for sass/scss file changes 

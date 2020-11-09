@@ -13,17 +13,15 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
     {
         private SassInitialiser _watcher;
         private readonly IOptions<LiveSassCompileOptions> _options;
-        private readonly IWebHostEnvironment _environment;
 
-        public LiveSassCompileBackgroundService(IOptions<LiveSassCompileOptions> options, IWebHostEnvironment environment)
+        public LiveSassCompileBackgroundService(IOptions<LiveSassCompileOptions> options)
         {
             _options = options;
-            _environment = environment;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            if (_options.Value.EnvironmentsToActivateIn.Contains(_environment.EnvironmentName))
+            if (_options.Value.EnableLiveCompile)
             {
                 _watcher = new SassInitialiser(_options);
                 _watcher.StartFileWatchers();
