@@ -4,6 +4,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace LiveSassCompileUnitTests
 {
@@ -14,6 +16,7 @@ namespace LiveSassCompileUnitTests
         private string _testRootPath;
         private string _testSourcePath;
         private string _testDestinationPath;
+        private SassFileWatcherOptions _testOptions;
 
         [TestInitialize]
         public void InitialiseTestEnvironment()
@@ -30,6 +33,8 @@ namespace LiveSassCompileUnitTests
 
             _testDestinationPath = Path.Combine(_testRootPath, "Destination");
             Directory.CreateDirectory(_testDestinationPath);
+
+            _testOptions = new SassFileWatcherOptions { SourcePath = _testSourcePath, DestinationPath = _testDestinationPath };
         }
 
 
@@ -54,13 +59,20 @@ namespace LiveSassCompileUnitTests
         }
 
         [TestMethod]
-        public void StartFileWatcher_FileChange_UpdatesDestinationFile()
+        public void StartFileWatcher_FileCreated_CreatesDestinationFile()
         {
-            // Arrange
-            var options = new SassFileWatcherOptions { SourcePath = _testSourcePath, DestinationPath = _testDestinationPath };
+//            // Arrange
+//            var watcher = new SassFileWatcher(_testOptions);
+//            watcher.StartFileWatcher();
 
-            // Assert
-            Assert.ThrowsException<EmptyArrayException>(() => new SassFileWatcher(options));
+//            // Act
+//            File.WriteAllText(Path.Combine(_testSourcePath, "styles.scss"), @"body {  
+//color: red;
+//}");
+
+//            watcher.StopFileWatcher();
+//            // Assert
+//            Assert.IsTrue(File.Exists(Path.Combine(_testSourcePath, "styles.css")));
         }
 
         [TestCleanup]

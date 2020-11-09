@@ -30,5 +30,11 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
         /// Default: [ "_*" ]
         /// </summary>
         public List<string> FileNameExclusions { get; set; } = new List<string> { "_*" };
+
+        /// <summary>
+        /// Compile the sass file(s) after starting to watch for changes
+        /// Default: true
+        /// </summary>
+        public bool CompileOnStart { get; set; } = true;
     }
 }

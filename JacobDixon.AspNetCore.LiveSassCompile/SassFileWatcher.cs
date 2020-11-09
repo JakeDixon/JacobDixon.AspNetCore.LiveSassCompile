@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace JacobDixon.AspNetCore.LiveSassCompile
 {
@@ -10,6 +11,7 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
     {
         private FileSystemWatcher _fileWatcher;
         private readonly SassFileWatcherOptions _options;
+        private Dictionary<string, DateTime> _lastRead = new Dictionary<string, DateTime>();
 
         public SassFileWatcher(SassFileWatcherOptions options)
         {
@@ -42,6 +44,12 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
             _fileWatcher.Changed += FileWatcher_Changed;
             _fileWatcher.Created += FileWatcher_Changed;
             _fileWatcher.Renamed += FileWatcher_Renamed;
+
+            if (_options.CompileOnStart)
+            {
+                var sassCompiler = new SassCompiler(_options);
+                sassCompiler.Compile(_options.SourcePath);
+            }
         }
 
         public void StopFileWatcher()
@@ -59,36 +67,15 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
             if (string.IsNullOrEmpty(filePath))
                 return;
 
-            var fileName = Path.GetFileName(filePath);
+            var lastWriteTime = File.GetLastWriteTime(filePath);
 
-            if (IsExcluded(fileName))
-                return;
-
-            var cssFilePath = Path.ChangeExtension(filePath, ".css");
-            var cssFileName = Path.GetFileName(cssFilePath);
-
-            var result = LibSassHost.SassCompiler.CompileFile(
-                filePath,
-                cssFileName,
-                options: new LibSassHost.CompilationOptions
-                {
-                    OutputStyle = LibSassHost.OutputStyle.Compressed
-                });
-
-            var relativePath = Path.GetRelativePath(_options.SourcePath, cssFilePath);
-
-            File.WriteAllText(Path.Combine(_options.DestinationPath, relativePath), result.CompiledContent);
-        }
-
-        private bool IsExcluded(string fileName)
-        {
-            foreach (var exclude in _options.FileNameExclusions)
+            if (!_lastRead.ContainsKey(filePath) || _lastRead[filePath] < lastWriteTime)
             {
-                if (fileName.MatchesGlob(exclude))
-                    return true;
-            }
+                var sassCompiler = new SassCompiler(_options);
+                sassCompiler.Compile(filePath);
 
-            return false;
+                _lastRead[filePath] = DateTime.Now;
+            }
         }
 
         private void FileWatcher_Renamed(object sender, RenamedEventArgs e)
