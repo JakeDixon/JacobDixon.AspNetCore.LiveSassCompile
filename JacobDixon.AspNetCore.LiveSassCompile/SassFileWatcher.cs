@@ -44,6 +44,7 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
             _fileWatcher.Changed += FileWatcher_Changed;
             _fileWatcher.Created += FileWatcher_Changed;
             _fileWatcher.Renamed += FileWatcher_Renamed;
+            _fileWatcher.Deleted += FileWatcher_Deleted;
 
             if (_options.CompileOnStart)
             {
@@ -78,14 +79,36 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
             }
         }
 
+        private void DeleteCompiledFile(string filePath)
+        {
+            // needs to handle include files forcing a recompile
+            if (string.IsNullOrEmpty(filePath))
+                return;
+
+            var cssFilePath = Path.ChangeExtension(filePath, ".css");
+            var relativePath = Path.GetRelativePath(_options.SourcePath, cssFilePath);
+            var destinationPath = Path.Combine(_options.DestinationPath, relativePath);
+
+            if (File.Exists(destinationPath))
+            {
+                File.Delete(destinationPath);
+            }
+        }
+
         private void FileWatcher_Renamed(object sender, RenamedEventArgs e)
         {
+            DeleteCompiledFile(e.OldFullPath);
             FileChanged(e.FullPath);
         }
 
         private void FileWatcher_Changed(object sender, FileSystemEventArgs e)
         {
             FileChanged(e.FullPath);
+        }
+
+        private void FileWatcher_Deleted(object sender, FileSystemEventArgs e)
+        {
+            DeleteCompiledFile(e.FullPath);
         }
     }
 }
