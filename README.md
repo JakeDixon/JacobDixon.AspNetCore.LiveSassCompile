@@ -2,7 +2,7 @@
 Compiles Sass/Scss when files change while the server is running.
 
 ## How To Use
-Add the NuGet package JacobDixon.AspNetCore.LiveSassCompile to your project
+Add the NuGet package JacobDixon.AspNetCore.LiveSassCompile to your project. [See NuGet.org for more info on installing the package.](https://www.nuget.org/packages/JacobDixon.AspNetCore.LiveSassCompile/)
 
 Add services.AddLiveSassCompile() to the ConfigureServices method inside Startup.cs
 ```
