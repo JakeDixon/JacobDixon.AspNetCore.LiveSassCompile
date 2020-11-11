@@ -4,10 +4,13 @@ using System.IO;
 using System.Text;
 using System.Threading;
 
-namespace JacobDixon.AspNetCore.LiveSassCompile
+namespace JacobDixon.AspNetCore.LiveSassCompile.Compilers
 {
-    public class SassCompiler
+    public class SassCompiler : ICompiler
     {
+        private const int _maxRetryAttempts = 2;
+        private const string _compileFileExtension = ".css";
+        private const int _msDelayBetweenRetries = 100;
         private SassFileWatcherOptions _options;
         public SassCompiler(SassFileWatcherOptions options)
         {
@@ -50,13 +53,13 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
             if (IsExcluded(fileName))
                 return;
 
-            var cssFilePath = Path.ChangeExtension(filePath, ".css");
+            var cssFilePath = Path.ChangeExtension(filePath, _compileFileExtension);
             var cssFileName = Path.GetFileName(cssFilePath);
 
             var attempts = 0;
             var successful = false;
 
-            while (!successful && attempts < 2)
+            while (!successful && attempts < _maxRetryAttempts)
             {
                 try
                 {
@@ -73,17 +76,17 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
                     File.WriteAllText(Path.Combine(_options.DestinationPath, relativePath), result.CompiledContent);
                     successful = true;
                 }
-                catch
+                catch (Exception e)
                 {
-                    if (attempts >= 2)
-                        throw;
+                    if (attempts >= _maxRetryAttempts)
+                        Console.WriteLine(e.ToString());
                     attempts++;
-                    Thread.Sleep(100);
+                    Thread.Sleep(_msDelayBetweenRetries);
                 }
             }
         }
 
-        private bool IsExcluded(string fileName)
+        public bool IsExcluded(string fileName)
         {
             foreach (var exclude in _options.FileNameExclusions)
             {

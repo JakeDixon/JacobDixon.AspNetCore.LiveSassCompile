@@ -1,6 +1,8 @@
 using JacobDixon.AspNetCore.LiveSassCompile;
+using JacobDixon.AspNetCore.LiveSassCompile.Compilers;
 using JacobDixon.AspNetCore.LiveSassCompile.Exceptions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,47 +36,82 @@ namespace LiveSassCompileUnitTests
             _testDestinationPath = Path.Combine(_testRootPath, "Destination");
             Directory.CreateDirectory(_testDestinationPath);
 
-            _testOptions = new SassFileWatcherOptions { SourcePath = _testSourcePath, DestinationPath = _testDestinationPath };
+            _testOptions = new SassFileWatcherOptions { SourcePath = _testSourcePath, DestinationPath = _testDestinationPath, CompileOnStart = false };
         }
 
 
         [TestMethod]
-        public void Constructor_NullSourcePath_ThrowsEmptyStringException()
+        public void SassFileWatcher_NullSourcePath_ThrowsEmptyStringException()
         {
             // Arrange
             var options = new SassFileWatcherOptions { SourcePath = null };
+            var compilerMock = new Mock<ICompiler>();
 
             // Assert
-            Assert.ThrowsException<EmptyStringException>(() => new SassFileWatcher(options));
+            Assert.ThrowsException<EmptyStringException>(() => new SassFileWatcher(options, compilerMock.Object));
         }
 
         [TestMethod]
-        public void Constructor_EmptyFileNameFilters_ThrowsEmptyArrayException()
+        public void SassFileWatcher_EmptyFileNameFilters_ThrowsEmptyArrayException()
         {
             // Arrange
             var options = new SassFileWatcherOptions { SourcePath = "test", FileNameFilters = new List<string>() };
+            var compilerMock = new Mock<ICompiler>();
 
             // Assert
-            Assert.ThrowsException<EmptyArrayException>(() => new SassFileWatcher(options));
+            Assert.ThrowsException<EmptyArrayException>(() => new SassFileWatcher(options, compilerMock.Object));
+        }
+
+        [TestMethod]
+        public void StartFileWatcher_CompileOnStartTrue_CallsICompilerCompileMethod()
+        {
+            // Arrange
+            var compilerMock = new Mock<ICompiler>();
+            compilerMock.Setup(o => o.Compile(It.IsAny<string>()));
+            var options = new SassFileWatcherOptions { SourcePath = _testOptions.SourcePath, CompileOnStart = true };
+            var sassWatcher = new SassFileWatcher(options, compilerMock.Object);
+
+            // Act
+            sassWatcher.StartFileWatcher();
+            sassWatcher.StopFileWatcher();
+
+            // Assert
+            compilerMock.Verify(o => o.Compile(It.IsAny<string>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void StartFileWatcher_CompileOnStartFalse_DoesNotCallICompilerCompileMethod()
+        {
+            // Arrange
+            var compilerMock = new Mock<ICompiler>();
+            compilerMock.Setup(o => o.Compile(It.IsAny<string>()));
+            var sassWatcher = new SassFileWatcher(_testOptions, compilerMock.Object);
+
+            // Act
+            sassWatcher.StartFileWatcher();
+            sassWatcher.StopFileWatcher();
+
+            // Assert
+            compilerMock.Verify(o => o.Compile(It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
         public void StartFileWatcher_FileCreated_CreatesDestinationFile()
         {
             // Arrange
-            var watcher = new SassFileWatcher(_testOptions);
+            var compilerMock = new Mock<ICompiler>();
+            compilerMock.Setup(o => o.Compile(It.IsAny<string>()));
+            var watcher = new SassFileWatcher(_testOptions, compilerMock.Object);
             watcher.StartFileWatcher();
 
             // Act
-            File.WriteAllText(Path.Combine(_testSourcePath, "styles.scss"), @"body {  
-color: red;
-}");
+            WriteScssFile(Path.Combine(_testSourcePath, "styles.scss"));
             // Give the file system a second to catch up
             Thread.Sleep(200);
 
             watcher.StopFileWatcher();
             // Assert
-            Assert.IsTrue(File.Exists(Path.Combine(_testDestinationPath, "styles.css")));
+            compilerMock.Verify(o => o.Compile(It.IsAny<string>()), Times.Once);
         }
 
         [TestMethod]
@@ -82,14 +119,15 @@ color: red;
         {
             // Arrange
             string _updateContentsScssFileName = "update.scss";
-            string _updateContentsCssFileName = "update.css";
 
+            var compilerMock = new Mock<ICompiler>();
+            compilerMock.Setup(o => o.Compile(It.IsAny<string>()));
             WriteScssFile(Path.Combine(_testSourcePath, _updateContentsScssFileName));
-            var watcher = new SassFileWatcher(_testOptions);
+            var watcher = new SassFileWatcher(_testOptions, compilerMock.Object);
             watcher.StartFileWatcher();
 
             // Act
-            File.WriteAllText(Path.Combine(_testSourcePath, _updateContentsScssFileName), @"body {  
+            WriteScssFile(Path.Combine(_testSourcePath, _updateContentsScssFileName), @"body {  
 color: blue;
 }");
             // Give the file system a second to catch up
@@ -97,7 +135,7 @@ color: blue;
 
             watcher.StopFileWatcher();
             // Assert
-            Assert.IsTrue(File.ReadAllText(Path.Combine(_testDestinationPath, _updateContentsCssFileName)).Contains("blue"));
+            compilerMock.Verify(o => o.Compile(It.IsAny<string>()), Times.Once);
         }
 
         [TestMethod]
@@ -105,12 +143,13 @@ color: blue;
         {
             string _renameFileScssOldFileName = "rename.scss";
             string _renameFileScssNewFileName = "renameNew.scss";
-            string _renameFileCssNewFileName = "renameNew.css";
 
 
             // Arrange
+            var compilerMock = new Mock<ICompiler>();
+            compilerMock.Setup(o => o.Compile(It.IsAny<string>()));
             WriteScssFile(Path.Combine(_testSourcePath, _renameFileScssOldFileName));
-            var watcher = new SassFileWatcher(_testOptions);
+            var watcher = new SassFileWatcher(_testOptions, compilerMock.Object);
             watcher.StartFileWatcher();
 
             // Act
@@ -123,7 +162,7 @@ color: blue;
 
             watcher.StopFileWatcher();
             // Assert
-            Assert.IsTrue(File.Exists(Path.Combine(_testDestinationPath, _renameFileCssNewFileName)));
+            compilerMock.Verify(o => o.Compile(It.IsAny<string>()), Times.Once);
         }
 
         [TestMethod]
@@ -133,10 +172,13 @@ color: blue;
             string _renameFileScssOldFileName = "renameOldDeleted.scss";
             string _renameFileCssOldFileName = "renameOldDeleted.css";
             string _renameFileScssNewFileName = "renameNewOldDeleted.scss";
+
+            var compilerMock = new Mock<ICompiler>();
+            compilerMock.Setup(o => o.Compile(It.IsAny<string>()));
             var oldPath = Path.Combine(_testSourcePath, _renameFileScssOldFileName);
             WriteScssFile(oldPath);
             WriteScssFile(Path.Combine(_testDestinationPath, _renameFileCssOldFileName));
-            var watcher = new SassFileWatcher(_testOptions);
+            var watcher = new SassFileWatcher(_testOptions, compilerMock.Object);
             watcher.StartFileWatcher();
 
             // Act
@@ -148,6 +190,7 @@ color: blue;
 
             watcher.StopFileWatcher();
             // Assert
+            compilerMock.Verify(o => o.Compile(It.IsAny<string>()), Times.Once);
             Assert.IsFalse(File.Exists(Path.Combine(_testDestinationPath, _renameFileCssOldFileName)));
         }
 
@@ -157,11 +200,15 @@ color: blue;
             // Arrange
             string _deleteFileScssFileName = "delete.scss";
             string _deleteFileCssFileName = "delete.css";
+
+            var compilerMock = new Mock<ICompiler>();
+            compilerMock.Setup(o => o.Compile(It.IsAny<string>()));
+            compilerMock.Setup(o => o.IsExcluded(It.IsAny<string>()));
             var scssPath = Path.Combine(_testSourcePath, _deleteFileScssFileName);
             var cssPath = Path.Combine(_testDestinationPath, _deleteFileCssFileName);
             WriteScssFile(scssPath);
             WriteScssFile(cssPath);
-            var watcher = new SassFileWatcher(_testOptions);
+            var watcher = new SassFileWatcher(_testOptions, compilerMock.Object);
             watcher.StartFileWatcher();
 
             // Act
@@ -186,7 +233,7 @@ color: blue;
             if (content == null)
             {
                 content = @"body {  
-color: blue;
+color: red;
 }";
             }
 

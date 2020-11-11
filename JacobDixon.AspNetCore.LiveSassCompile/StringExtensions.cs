@@ -17,5 +17,15 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
                 RegexOptions.IgnoreCase | RegexOptions.Singleline
             ).IsMatch(str);
         }
+
+        /// <summary>
+        /// Checks if a string is null or empty.
+        /// </summary>
+        /// <param name="str">The string.</param>
+        /// <returns><c>true</c> if the string is null or empty; otherwise <c>false</c></returns>
+        public static bool IsNullOrEmpty(this string str)
+        {
+            return string.IsNullOrEmpty(str);
+        }
     }
 }

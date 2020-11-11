@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using JacobDixon.AspNetCore.LiveSassCompile.Compilers;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,7 +24,8 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
 
             foreach(var sassFileWatcherOptions in sassFileWatchersOptions)
             {
-                var sassFileWatcher = new SassFileWatcher(sassFileWatcherOptions);
+                ICompiler sassCompiler = new SassCompiler(sassFileWatcherOptions);
+                var sassFileWatcher = new SassFileWatcher(sassFileWatcherOptions, sassCompiler);
                 sassFileWatcher.StartFileWatcher();
                 _sassFileWatchers.Add(sassFileWatcher);
             }

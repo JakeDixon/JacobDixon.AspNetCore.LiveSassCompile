@@ -1,4 +1,5 @@
-﻿using JacobDixon.AspNetCore.LiveSassCompile.Exceptions;
+﻿using JacobDixon.AspNetCore.LiveSassCompile.Compilers;
+using JacobDixon.AspNetCore.LiveSassCompile.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,12 +10,15 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
 {
     public class SassFileWatcher
     {
+        private const string _compileFileExtension = ".css";
         private FileSystemWatcher _fileWatcher;
         private readonly SassFileWatcherOptions _options;
         private Dictionary<string, DateTime> _lastRead = new Dictionary<string, DateTime>();
+        private readonly ICompiler _compiler;
 
-        public SassFileWatcher(SassFileWatcherOptions options)
+        public SassFileWatcher(SassFileWatcherOptions options, ICompiler compiler)
         {
+            _compiler = compiler;
             _options = options;
 
             if (string.IsNullOrEmpty(_options.SourcePath))
@@ -48,8 +52,7 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
 
             if (_options.CompileOnStart)
             {
-                var sassCompiler = new SassCompiler(_options);
-                sassCompiler.Compile(_options.SourcePath);
+                _compiler.Compile(_options.SourcePath);
             }
         }
 
@@ -72,8 +75,7 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
 
             if (!_lastRead.ContainsKey(filePath) || _lastRead[filePath] < lastWriteTime)
             {
-                var sassCompiler = new SassCompiler(_options);
-                sassCompiler.Compile(filePath);
+                _compiler.Compile(filePath);
 
                 _lastRead[filePath] = DateTime.Now;
             }
@@ -81,11 +83,14 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
 
         private void DeleteCompiledFile(string filePath)
         {
-            // needs to handle include files forcing a recompile
-            if (string.IsNullOrEmpty(filePath))
+            if (filePath.IsNullOrEmpty())
                 return;
 
-            var cssFilePath = Path.ChangeExtension(filePath, ".css");
+            var fileName = Path.GetFileName(filePath);
+            if (_compiler.IsExcluded(fileName))
+                _compiler.Compile(_options.SourcePath);
+
+            var cssFilePath = Path.ChangeExtension(filePath, _compileFileExtension);
             var relativePath = Path.GetRelativePath(_options.SourcePath, cssFilePath);
             var destinationPath = Path.Combine(_options.DestinationPath, relativePath);
 
