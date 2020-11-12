@@ -8,14 +8,13 @@ on:
 
 jobs:
   build:
-
     runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v2
     
     - name: Fetch tags for GitVersion
-      run: git fetch --tags
+      run: git fetch --prune --unshallow
     
     - name: Fetch main for GitVersion
       if: github.ref != 'refs/heads/main'
@@ -37,7 +36,7 @@ jobs:
     
     - name: Test
       run: dotnet test --no-restore --verbosity normal
-    
+      
     - name: Pack
       run: dotnet pack --no-build --configuration Release JacobDixon.AspNetCore.LiveSassCompile/JacobDixon.AspNetCore.LiveSassCompile.csproj --output .
     
