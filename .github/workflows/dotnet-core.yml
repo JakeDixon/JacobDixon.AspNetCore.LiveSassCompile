@@ -1,0 +1,29 @@
+name: .NET Core
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.301
+    - name: Install dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
+    - name: Pack
+      run: dotnet pack --no-build --configuration Release JacobDixon.AspNetCore.LiveSassCompile/JacobDixon.AspNetCore.LiveSassCompile.csproj --output .
+    - name: Publish
+      run: dotnet nuget push JacobDixon.AspNetCore.LiveSassCompile.*.nupkg --api-key $( secrets.ApiKey ) --source https://api.nuget.org/v3/index.json
