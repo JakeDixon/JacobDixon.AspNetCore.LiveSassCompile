@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Web31PackageTest", "Sample 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{B8D8D0B8-A979-4EC9-87FE-030959546777}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiveSassCompileUnitTests", "UnitTests\LiveSassCompileUnitTests.csproj", "{128F22B3-36A5-4495-9A52-A2FF2AF64F6D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LiveSassCompileUnitTests", "UnitTests\LiveSassCompileUnitTests.csproj", "{128F22B3-36A5-4495-9A52-A2FF2AF64F6D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
