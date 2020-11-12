@@ -41,12 +41,17 @@ namespace JacobDixon.AspNetCore.LiveSassCompile.Compilers.Tests
             try
             {
                 // Arrange
+                InitialiseTestEnvironment();
                 var folderPath = Path.Combine(_testSourcePath, "subfolder");
                 Directory.CreateDirectory(folderPath);
 
 
                 // Act
 
+            }
+            finally
+            {
+                CleanUpTestEnvironment();
             }
             // Assert
             throw new XunitException();

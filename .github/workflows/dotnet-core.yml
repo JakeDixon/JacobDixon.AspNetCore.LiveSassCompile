@@ -17,6 +17,8 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.301
+    - name: Install GitVersion
+      run: dotnet tool install --global GitVersion.Tool
     - name: Install dependencies
       run: dotnet restore
     - name: Build
@@ -26,4 +28,4 @@ jobs:
     - name: Pack
       run: dotnet pack --no-build --configuration Release JacobDixon.AspNetCore.LiveSassCompile/JacobDixon.AspNetCore.LiveSassCompile.csproj --output .
     - name: Publish
-      run: dotnet nuget push JacobDixon.AspNetCore.LiveSassCompile.*.nupkg --api-key $( secrets.ApiKey ) --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push JacobDixon.AspNetCore.LiveSassCompile.*.nupkg --api-key ${{secrets.NuGetApiKey}} --source https://api.nuget.org/v3/index.json
