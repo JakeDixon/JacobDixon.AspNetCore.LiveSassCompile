@@ -73,6 +73,9 @@ namespace JacobDixon.AspNetCore.LiveSassCompile.Compilers
                         });
 
                     var relativePath = Path.GetRelativePath(_options.SourcePath, cssFilePath);
+                    var destinationFile = Path.Combine(_options.DestinationPath, relativePath);
+                    var destinationPath = Path.GetDirectoryName(destinationFile);
+                    Directory.CreateDirectory(destinationPath);
                     File.WriteAllText(Path.Combine(_options.DestinationPath, relativePath), result.CompiledContent);
                     successful = true;
                 }

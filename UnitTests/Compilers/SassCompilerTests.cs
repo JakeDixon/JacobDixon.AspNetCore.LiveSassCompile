@@ -1,4 +1,5 @@
 ﻿using JacobDixon.AspNetCore.LiveSassCompile.Compilers;
+using LiveSassCompileUnitTests.Compilers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,57 +11,42 @@ namespace JacobDixon.AspNetCore.LiveSassCompile.Compilers.Tests
 {
     public class SassCompilerTests
     {
-        private const string _testDirectoryName = "LiveSassCompileTest.SassCompiler";
         private string _testRootPath;
-        private string _testSourcePath;
-        private string _testDestinationPath;
-        private SassFileWatcherOptions _testOptions;
 
-        private void InitialiseTestEnvironment()
-        {
-            var tempDir = Environment.GetEnvironmentVariable("temp");
-            if (string.IsNullOrEmpty(tempDir))
-                throw new XunitException("Unable to load the temp directory from environment variables.");
-
-            _testRootPath = Path.Combine(tempDir, _testDirectoryName);
-            Directory.CreateDirectory(_testRootPath);
-
-            _testSourcePath = Path.Combine(_testRootPath, "Source");
-            Directory.CreateDirectory(_testSourcePath);
-
-            _testDestinationPath = Path.Combine(_testRootPath, "Destination");
-            Directory.CreateDirectory(_testDestinationPath);
-
-            _testOptions = new SassFileWatcherOptions { SourcePath = _testSourcePath, DestinationPath = _testDestinationPath, CompileOnStart = false };
-        }
-
-        [Fact]
-        public void Compile_DirectoryWithSingleFile_CompilesSuccessfully()
+        [Theory]
+        [ClassData(typeof(SassCompilerTestDataCollection))]
+        public void Compile(List<SassCompilerTestData> filesToCreate, string sourceDirectory, string destinationDirectory)
         {
             bool fileExists = false;
             try
             {
                 // Arrange
-                InitialiseTestEnvironment();
-                var folderPath = Path.Combine(_testSourcePath, "subfolder");
-                Directory.CreateDirectory(folderPath);
-
+                foreach (var file in filesToCreate)
+                {
+                    WriteScssFile(file.SourceLocation, file.FileContent);
+                }
+                SassFileWatcherOptions options = new SassFileWatcherOptions() { CompileOnStart = false, DestinationPath = destinationDirectory, SourcePath = sourceDirectory };
+                ICompiler compiler = new SassCompiler(options);
 
                 // Act
+                compiler.Compile(sourceDirectory);
 
+                foreach(var file in filesToCreate)
+                {
+                    if (!compiler.IsExcluded(Path.GetFileName(file.SourceLocation)))
+                    {
+                        fileExists = File.Exists(file.DestinationLocation);
+                        if (fileExists == false)
+                            break;
+                    }
+                }
             }
             finally
             {
                 CleanUpTestEnvironment();
             }
             // Assert
-            throw new XunitException();
-        }
-
-        [Fact]
-        public void IsExcludedTest()
-        {
-            throw new XunitException();
+            Assert.True(fileExists);
         }
 
         private void CleanUpTestEnvironment()
@@ -78,6 +64,7 @@ color: red;
 }";
             }
 
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllText(path, content);
         }
     }

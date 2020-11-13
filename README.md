@@ -15,6 +15,10 @@ public void ConfigureServices(IServiceCollection services)
 
 Configure the options in appsettings.json
 
+## Dependencies
+
+The project depends on [LibHostSass](https://github.com/Taritsyn/LibSassHost). By default the win-x64 bit is included but other OS support is available from the [LibHostSass](https://github.com/Taritsyn/LibSassHost) repository.
+
 ## Options
 
 The available options are:
@@ -68,3 +72,7 @@ Default: \[ "\*.scss", "\*.sass" \]
 The file name patters to exclude from compiling. 
 Accepts an array of glob patterns.
 Default: \[ "_\*" \]
+
+## Contributing
+
+All contributions are welcome.
