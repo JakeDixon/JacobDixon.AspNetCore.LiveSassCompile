@@ -4,3 +4,4 @@ branches:
     regex: ^master|main$
   develop:
     increment: Patch
+    tag: alpha

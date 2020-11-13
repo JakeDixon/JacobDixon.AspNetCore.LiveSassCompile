@@ -25,9 +25,6 @@ jobs:
       with:
         dotnet-version: 3.1.301
     
-    - name: Install GitVersion
-      run: dotnet tool install --global GitVersion.Tool
-    
     - name: Install dependencies
       run: dotnet restore
     
@@ -36,7 +33,7 @@ jobs:
     
     - name: Test
       run: dotnet test --no-restore --verbosity normal
-      
+
     - name: Pack
       run: dotnet pack --no-build --configuration Release JacobDixon.AspNetCore.LiveSassCompile/JacobDixon.AspNetCore.LiveSassCompile.csproj --output .
     
