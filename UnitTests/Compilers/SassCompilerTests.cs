@@ -33,12 +33,13 @@ namespace JacobDixon.AspNetCore.LiveSassCompile.Compilers.Tests
 
                 foreach(var file in filesToCreate)
                 {
-                    if (!compiler.IsExcluded(Path.GetFileName(file.SourceLocation)))
-                    {
+                    if (compiler.IsExcluded(Path.GetFileName(file.SourceLocation)))
+                        fileExists = !File.Exists(file.DestinationLocation);
+                    else
                         fileExists = File.Exists(file.DestinationLocation);
-                        if (fileExists == false)
-                            break;
-                    }
+
+                    if (fileExists == false)
+                        break;
                 }
             }
             finally

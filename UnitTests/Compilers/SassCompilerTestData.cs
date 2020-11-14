@@ -36,6 +36,52 @@ namespace LiveSassCompileUnitTests.Compilers
                 sourceDirectory,
                 destinationDirectory
             };
+            // Multi file in top level directory compile
+            yield return new object[] {
+                new List<SassCompilerTestData> {
+                    new SassCompilerTestData {
+                        SourceLocation = Path.Combine(sourceDirectory, "styles.scss"),
+                        DestinationLocation = Path.Combine(destinationDirectory, "styles.css")
+                    },
+                    new SassCompilerTestData {
+                        SourceLocation = Path.Combine(sourceDirectory, "site.scss"),
+                        DestinationLocation = Path.Combine(destinationDirectory, "site.css")
+                    }
+                },
+                sourceDirectory,
+                destinationDirectory
+            };
+            // Multi file in multi level directories compile
+            yield return new object[] {
+                new List<SassCompilerTestData> {
+                    new SassCompilerTestData {
+                        SourceLocation = Path.Combine(sourceDirectory, "styles.scss"),
+                        DestinationLocation = Path.Combine(destinationDirectory, "styles.css")
+                    },
+                    new SassCompilerTestData {
+                        SourceLocation = Path.Combine(sourceDirectory, "subfolder", "site.scss"),
+                        DestinationLocation = Path.Combine(destinationDirectory, "subfolder", "site.css")
+                    }
+                },
+                sourceDirectory,
+                destinationDirectory
+            };
+            // Multi file with @import rules
+            yield return new object[] {
+                new List<SassCompilerTestData> {
+                    new SassCompilerTestData {
+                        SourceLocation = Path.Combine(sourceDirectory, "styles.scss"),
+                        DestinationLocation = Path.Combine(destinationDirectory, "styles.css"),
+                        FileContent = @"@import includes/_background.scss"
+                    },
+                    new SassCompilerTestData {
+                        SourceLocation = Path.Combine(sourceDirectory, "includes", "_background.scss"),
+                        DestinationLocation = Path.Combine(destinationDirectory, "includes", "_background.scss")
+                    }
+                },
+                sourceDirectory,
+                destinationDirectory
+            };
         }
 
         IEnumerator IEnumerable.GetEnumerator()
