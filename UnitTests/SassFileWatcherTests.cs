@@ -35,7 +35,12 @@ namespace LiveSassCompileUnitTests
             _testDestinationPath = Path.Combine(_testRootPath, "Destination");
             Directory.CreateDirectory(_testDestinationPath);
 
-            _testOptions = new SassFileWatcherOptions { SourcePath = _testSourcePath, DestinationPath = _testDestinationPath, CompileOnStart = false };
+            _testOptions = new SassFileWatcherOptions { 
+                SourcePath = _testSourcePath, 
+                DestinationPath = _testDestinationPath, 
+                CompileOnStart = false,
+                GenerateSourceMaps = false
+            };
         }
 
 
