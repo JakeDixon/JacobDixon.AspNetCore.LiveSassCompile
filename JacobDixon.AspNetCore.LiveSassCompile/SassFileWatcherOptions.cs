@@ -36,5 +36,11 @@ namespace JacobDixon.AspNetCore.LiveSassCompile
         /// Default: true
         /// </summary>
         public bool CompileOnStart { get; set; } = true;
+
+        /// <summary>
+        /// Should the compiler generate source maps?
+        /// Default: true
+        /// </summary>
+        public bool GenerateSourceMaps { get; set; } = true;
     }
 }

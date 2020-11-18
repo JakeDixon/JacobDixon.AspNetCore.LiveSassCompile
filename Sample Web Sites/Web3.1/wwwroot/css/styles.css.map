@@ -1,0 +1,10 @@
+{
+	"version": 3,
+	"file": "styles.css",
+	"sources": [
+		"../../src/scss/styles.scss",
+		"../../src/scss/_testExcluded.scss"
+	],
+	"names": [],
+	"mappings": "ACAA,AAAA,EAAE,AAAC,CACC,WAAW,CAAE,IAAI,CACjB,KAAK,CAAE,OAAO,CACjB,ADFD,AAAA,IAAI,AAAC,CACD,KAAK,CAAC,IAAI,CACV,gBAAgB,CAAE,KAAK,CAC1B"
+}

@@ -10,6 +10,7 @@ namespace JacobDixon.AspNetCore.LiveSassCompile.Compilers
     {
         private const int _maxRetryAttempts = 2;
         private const string _compileFileExtension = ".css";
+        private const string _sourceMapFileExtension = ".css.map";
         private const int _msDelayBetweenRetries = 100;
         private SassFileWatcherOptions _options;
         public SassCompiler(SassFileWatcherOptions options)
@@ -54,7 +55,11 @@ namespace JacobDixon.AspNetCore.LiveSassCompile.Compilers
                 return;
 
             var cssFilePath = Path.ChangeExtension(filePath, _compileFileExtension);
-            var cssFileName = Path.GetFileName(cssFilePath);
+
+            var relativePath = Path.GetRelativePath(_options.SourcePath, cssFilePath);
+            var destinationFile = Path.Combine(_options.DestinationPath, relativePath);
+            var sourceMapFile = Path.ChangeExtension(destinationFile, _sourceMapFileExtension);
+            var destinationPath = Path.GetDirectoryName(destinationFile);
 
             var attempts = 0;
             var successful = false;
@@ -65,18 +70,18 @@ namespace JacobDixon.AspNetCore.LiveSassCompile.Compilers
                 {
                     var result = LibSassHost.SassCompiler.CompileFile(
                         filePath,
-                        cssFileName,
+                        destinationFile,
+                        sourceMapFile,
                         options: new LibSassHost.CompilationOptions
                         {
                             OutputStyle = LibSassHost.OutputStyle.Compressed,
-                            IncludePaths = { _options.SourcePath }
+                            IncludePaths = { _options.SourcePath },
+                            SourceMap = _options.GenerateSourceMaps
                         });
-
-                    var relativePath = Path.GetRelativePath(_options.SourcePath, cssFilePath);
-                    var destinationFile = Path.Combine(_options.DestinationPath, relativePath);
-                    var destinationPath = Path.GetDirectoryName(destinationFile);
+                    
                     Directory.CreateDirectory(destinationPath);
-                    File.WriteAllText(Path.Combine(_options.DestinationPath, relativePath), result.CompiledContent);
+                    File.WriteAllText(destinationFile, result.CompiledContent);
+                    File.WriteAllText(sourceMapFile, result.SourceMap);
                     successful = true;
                 }
                 catch (Exception e)
